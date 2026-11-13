@@ -1,0 +1,742 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Class 1 — How Computers See</title>
+<style>
+  :root{
+    --bg:#fbf8f2; --ink:#1d2433; --muted:#5b6475; --accent:#e8692e; --accent2:#2f7dd1;
+    --card:#ffffff; --line:#e6e0d4; --code-bg:#1e2230; --code-ink:#e9edf5; --good:#2e9a5b;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
+    font:20px/1.5 "Segoe UI",system-ui,-apple-system,Roboto,sans-serif}
+  .slide{position:absolute;inset:0;display:none;flex-direction:column;justify-content:center;
+    padding:5vh clamp(16px,7vw,120px) 9vh;overflow:auto}
+  .slide.active{display:flex}
+  h1{font-size:clamp(2rem,5vw,3.4rem);line-height:1.1;margin:0 0 .4em}
+  h2{font-size:clamp(1.5rem,3.4vw,2.3rem);margin:0 0 .6em;color:var(--ink)}
+  h2 .tag{font-size:.5em;vertical-align:middle;background:var(--accent);color:#fff;
+    padding:.15em .6em;border-radius:99px;margin-right:.5em;font-weight:600}
+  h3{margin:.2em 0 .4em}
+  p,li{max-width:62ch}
+  ul{padding-left:1.2em} li{margin:.3em 0}
+  .muted{color:var(--muted)}
+  .big{font-size:1.4em}
+  .small{font-size:.8em}
+  em{color:var(--accent);font-style:normal;font-weight:600}
+  code{font-family:"JetBrains Mono","Fira Code",Consolas,monospace;font-size:.88em;
+    background:#efe8da;padding:.05em .35em;border-radius:5px}
+  pre{background:var(--code-bg);color:var(--code-ink);padding:1em 1.2em;border-radius:12px;
+    overflow-x:auto;font-size:.78em;line-height:1.45;margin:.4em 0;max-width:100%}
+  pre code{background:none;padding:0;color:inherit;font-size:1em}
+  .c{color:#8a93a8} .k{color:#ff9e64} .s{color:#9ece6a} .n{color:#7dcfff}
+  .cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1.4em;align-items:start}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:1em 1.2em}
+  .card h3{margin:.1em 0 .4em;font-size:1.05em}
+  .card p{margin:.3em 0}
+  .title-slide{background:linear-gradient(135deg,#fff3e6 0%,#eaf3ff 100%)}
+  .emoji{font-size:2.4em;line-height:1}
+  .steps{counter-reset:s;list-style:none;padding:0}
+  .steps li{counter-increment:s;padding-left:2.2em;position:relative}
+  .steps li::before{content:counter(s);position:absolute;left:0;top:.1em;width:1.6em;height:1.6em;
+    border-radius:50%;background:var(--accent2);color:#fff;font-size:.8em;display:grid;place-items:center;font-weight:700}
+  .callout{border-left:5px solid var(--accent);background:#fff;padding:.6em 1em;border-radius:0 10px 10px 0;margin:.8em 0}
+  .warn{border-left-color:#d23b3b}
+  button{font:inherit;font-size:.75em;padding:.35em .8em;border-radius:99px;border:1px solid var(--line);
+    background:#fff;color:var(--ink);cursor:pointer}
+  button:hover{border-color:var(--accent);color:var(--accent)}
+  button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+  .row{display:flex;flex-wrap:wrap;gap:.4em;align-items:center}
+  label.ctl{display:flex;align-items:center;gap:.6em;font-size:.8em;margin:.3em 0}
+  label.ctl input[type=range]{flex:1;min-width:120px}
+  label.ctl output{min-width:3ch;font-weight:700;font-family:Consolas,monospace}
+
+  /* timeline */
+  .timeline{display:grid;gap:.6em;margin-top:.4em}
+  .tl{display:grid;grid-template-columns:7.5em 1fr;gap:1em;align-items:start;background:#fff;
+    border:1px solid var(--line);border-radius:12px;padding:.6em 1em}
+  .tl b.t{font-family:Consolas,monospace;color:var(--accent)}
+  .tl p{margin:0}
+  @media (max-width:640px){.tl{grid-template-columns:1fr;gap:.2em}}
+
+  /* team */
+  .team{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.6em}
+  .person{background:#fff;border:1px solid var(--line);border-radius:18px;padding:1.3em;display:flex;gap:1.1em;align-items:flex-start}
+  @media (max-width:520px){.person{flex-direction:column}}
+  .photo{flex:none;width:140px;height:140px;border-radius:50%;overflow:hidden;position:relative;
+    background:linear-gradient(135deg,var(--accent),var(--accent2));display:grid;place-items:center;
+    color:#fff;font-size:2.6em;font-weight:800;border:4px solid #fff;box-shadow:0 4px 16px rgba(0,0,0,.12)}
+  .photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+  .person h3{font-size:1.2em;margin:0}
+  .role{color:var(--accent);font-weight:700;margin:.1em 0 .5em;font-size:.85em;text-transform:uppercase;letter-spacing:.04em}
+  .person p.bio{font-size:.8em;margin:.2em 0 .6em}
+  .chips{display:flex;flex-wrap:wrap;gap:.35em}
+  .chips span{font-size:.65em;background:#eef4fc;color:#1f5ea3;border-radius:99px;padding:.2em .7em;font-weight:600}
+  .todo{outline:2px dashed #d9a000;outline-offset:3px;border-radius:4px}
+
+  /* pixel grid */
+  .pix-wrap{display:grid;grid-template-columns:auto 1fr;gap:1.6em;align-items:center}
+  @media (max-width:800px){.pix-wrap{grid-template-columns:1fr}}
+  .pix{display:grid;grid-template-columns:repeat(12,1fr);width:min(440px,86vw);aspect-ratio:1;border:2px solid var(--ink);border-radius:6px;overflow:hidden}
+  .pix div{display:grid;place-items:center;font:600 clamp(7px,1vw,11px)/1 Consolas,monospace;cursor:default}
+  .pix.nonum div{color:transparent!important}
+  .readout{font-family:Consolas,monospace;font-size:.95em;background:#fff;border:1px solid var(--line);border-radius:10px;padding:.5em .8em;display:inline-block;min-width:16ch}
+
+  /* rgb mixer */
+  .mixer{display:grid;grid-template-columns:minmax(220px,360px) 1fr;gap:1.6em;align-items:center}
+  @media (max-width:760px){.mixer{grid-template-columns:1fr}}
+  .swatch{width:100%;max-width:300px;aspect-ratio:1;border-radius:18px;border:1px solid var(--line);box-shadow:0 6px 20px rgba(0,0,0,.1)}
+  .chan-r input{accent-color:#e23} .chan-g input{accent-color:#2a2} .chan-b input{accent-color:#23e}
+
+  /* canvases */
+  .stage{display:grid;grid-template-columns:minmax(240px,330px) 1fr;gap:1.4em;align-items:start}
+  @media (max-width:860px){.stage{grid-template-columns:1fr}}
+  canvas.view{width:100%;max-width:640px;height:auto;background:#fff;border:1px solid var(--line);border-radius:12px;display:block;touch-action:none}
+  #cropCv{cursor:crosshair}
+  .roiPrev{max-width:220px;width:100%;image-rendering:auto;border:1px solid var(--line);border-radius:8px;background:#fff;display:block;margin-top:.4em}
+  .codeline{font-family:Consolas,monospace;font-size:.75em;background:var(--code-bg);color:var(--code-ink);
+    border-radius:10px;padding:.6em .8em;white-space:pre-wrap;word-break:break-word;margin:.5em 0}
+  .upload{font-size:.75em}
+  .kernel{display:inline-grid;grid-template-columns:repeat(3,2.6em);gap:3px;font-family:Consolas,monospace;margin:.3em 0}
+  .kernel span{background:var(--accent);color:#fff;text-align:center;border-radius:4px;padding:.25em 0;font-weight:700}
+  .flow{display:flex;flex-wrap:wrap;align-items:center;gap:.5em;margin:.8em 0}
+  .flow .box{background:#fff;border:2px solid var(--accent2);border-radius:10px;padding:.4em .8em;font-weight:600;font-size:.85em}
+  .flow .arr{color:var(--muted);font-size:1.2em}
+
+  /* chrome */
+  .bar{position:fixed;left:0;right:0;bottom:0;height:5px;background:var(--line)}
+  .bar i{display:block;height:100%;background:var(--accent);transition:width .25s}
+  .nav{position:fixed;right:18px;bottom:16px;display:flex;gap:.5em;align-items:center;
+    font-size:.7em;color:var(--muted)}
+  .nav button{font-size:1em}
+  .section{background:var(--ink);color:#fff}
+  .section h1{color:#fff} .section p{color:#c9d1e3}
+  .section .num{font-size:5em;font-weight:800;color:var(--accent);line-height:1}
+  .section .time{font-family:Consolas,monospace;color:#9fb3d9;font-size:.9em}
+</style>
+</head>
+<body>
+
+<!-- ============ TITLE ============ -->
+<section class="slide title-slide">
+  <div class="emoji">📷 → 🔢 → ✏️</div>
+  <h1>Class 1<br>Matrix Foundations &amp; Transformations</h1>
+  <p class="big muted">How computers see · Basic transformations · Enhancement &amp; edges · Lab</p>
+  <p class="muted">90 minutes · Python + NumPy + OpenCV in Google Colab<br>Use ← → (or space) to move through slides</p>
+</section>
+
+<!-- ============ TEAM ============ -->
+<!-- PHOTOS: put the files in class-01/images/ named director.jpg and instructor.jpg -->
+<section class="slide">
+  <h2>Meet the team 👋</h2>
+  <div class="team">
+    <div class="person">
+      <div class="photo">DR<img src="images/director.jpg" alt="Photo of the program director" onerror="this.remove()"></div>
+      <div>
+        <h3 class="todo">Director's Name</h3>
+        <div class="role">Program Director</div>
+        <p class="bio todo">Technical bio goes here: area of expertise, years of experience, key research or industry work, and what they lead in this program.</p>
+        <div class="chips"><span>Expertise 1</span><span>Expertise 2</span><span>Expertise 3</span></div>
+      </div>
+    </div>
+    <div class="person">
+      <div class="photo">ME<img src="images/instructor.jpg" alt="Photo of the instructor" onerror="this.remove()"></div>
+      <div>
+        <h3 class="todo">Instructor's Name</h3>
+        <div class="role">Instructor · Computer Vision</div>
+        <p class="bio todo">Technical bio goes here: background, tools and languages worked with, projects in image processing / AI, and what you'll guide students through.</p>
+        <div class="chips"><span>Python</span><span>OpenCV</span><span>Expertise 3</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PLAN ============ -->
+<section class="slide">
+  <h2>Today's plan 🗺️ <span class="muted small">(90 min)</span></h2>
+  <div class="timeline">
+    <div class="tl"><b class="t">00–20m</b><p><b>How computers see</b> — images are grids of numbers (0–255): 2D grayscale, 3D colour.</p></div>
+    <div class="tl"><b class="t">20–45m</b><p><b>Basic transformations</b> — load &amp; show in Colab, colour spaces, resize, rotate, crop.</p></div>
+    <div class="tl"><b class="t">45–75m</b><p><b>Enhancement &amp; edges</b> — Gaussian blur, thresholding, Canny edge detector.</p></div>
+    <div class="tl"><b class="t">75–90m</b><p><b>In-class lab</b> — turn a photo into a clean black-and-white edge sketch.</p></div>
+  </div>
+  <p class="callout">🏠 Homework 1: an <em>automated photo framer &amp; batch resizer</em>.</p>
+</section>
+
+<!-- ============ PART 1 ============ -->
+<section class="slide section">
+  <div class="num">1</div>
+  <h1>How computers see</h1>
+  <p class="time">00–20 min</p>
+  <p>To a computer, a photo is just a big table of numbers.</p>
+</section>
+
+<section class="slide">
+  <h2>An image is a grid of pixels</h2>
+  <div class="pix-wrap">
+    <div id="pix" class="pix" aria-label="12 by 12 grayscale pixel grid"></div>
+    <div>
+      <p>Each square is one <b>pixel</b>. Each pixel is one number:</p>
+      <ul>
+        <li><code>0</code> = black</li>
+        <li><code>255</code> = white</li>
+        <li>anything between = a shade of grey</li>
+      </ul>
+      <p>Hover a pixel:</p>
+      <div class="readout" id="pixOut">img[row, col] = …</div>
+      <div class="row" style="margin-top:.8em">
+        <button id="pixNum" class="on">Numbers on</button>
+        <button id="pixInvert">Invert (255 − x)</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>Grayscale = a 2D matrix</h2>
+  <div class="cols">
+    <div>
+      <pre><code><span class="k">import</span> numpy <span class="k">as</span> np
+
+img = np.array([[  <span class="k">0</span>,  <span class="k">50</span>, <span class="k">100</span>],
+                [<span class="k">150</span>, <span class="k">200</span>, <span class="k">255</span>]],
+               dtype=np.uint8)
+
+img.shape     <span class="c"># (2, 3) → 2 rows (height), 3 cols (width)</span>
+img.dtype     <span class="c"># uint8 → whole numbers 0…255</span>
+img[<span class="k">1</span>, <span class="k">2</span>]     <span class="c"># 255   → row 1, column 2</span>
+img.max()     <span class="c"># 255</span></code></pre>
+    </div>
+    <div class="card">
+      <h3>Remember</h3>
+      <ul>
+        <li>Shape is <b>(height, width)</b>: rows first</li>
+        <li>Index is <code>img[y, x]</code>, starting at <b>0</b></li>
+        <li><code>uint8</code> = 8 bits = 2⁸ = <b>256</b> values</li>
+        <li>A 1080p photo = 1080 × 1920 ≈ <b>2 million</b> numbers</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>Colour = a 3D array (3 layers)</h2>
+  <div class="mixer">
+    <div>
+      <label class="ctl chan-r">R <input id="rR" type="range" min="0" max="255" value="232"><output id="oR">232</output></label>
+      <label class="ctl chan-g">G <input id="rG" type="range" min="0" max="255" value="105"><output id="oG">105</output></label>
+      <label class="ctl chan-b">B <input id="rB" type="range" min="0" max="255" value="46"><output id="oB">46</output></label>
+      <div class="codeline" id="rgbCode"></div>
+      <div class="swatch" id="swatch"></div>
+    </div>
+    <div>
+      <p>Each colour pixel has <b>3 numbers</b>: how much <span style="color:#d22;font-weight:700">red</span>,
+        <span style="color:#1a1;font-weight:700">green</span> and <span style="color:#22d;font-weight:700">blue</span> light.</p>
+      <pre><code>img.shape   <span class="c"># (height, width, 3)</span>
+img[y, x]   <span class="c"># → [B, G, R]  three numbers</span></code></pre>
+      <p class="callout warn">⚠️ <b>OpenCV stores colours as BGR</b>, not RGB! Matplotlib expects RGB, so
+        un-converted photos look blue-ish. Fix: <code>cv2.cvtColor(img, cv2.COLOR_BGR2RGB)</code></p>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>Make an image from scratch</h2>
+  <div class="cols">
+    <pre><code><span class="k">import</span> numpy <span class="k">as</span> np
+<span class="k">import</span> cv2
+
+canvas = np.zeros((<span class="k">200</span>, <span class="k">300</span>, <span class="k">3</span>), dtype=np.uint8)  <span class="c"># all black</span>
+
+canvas[:, :] = (<span class="k">255</span>, <span class="k">0</span>, <span class="k">0</span>)          <span class="c"># all BLUE (BGR!)</span>
+canvas[<span class="k">50</span>:<span class="k">150</span>, <span class="k">100</span>:<span class="k">200</span>] = (<span class="k">0</span>, <span class="k">255</span>, <span class="k">255</span>)  <span class="c"># yellow box</span>
+
+cv2.circle(canvas, (<span class="k">150</span>, <span class="k">100</span>), <span class="k">30</span>, (<span class="k">0</span>, <span class="k">0</span>, <span class="k">255</span>), -<span class="k">1</span>)  <span class="c"># red dot</span></code></pre>
+    <div class="card"><h3>Try it in Colab</h3>
+      <p>Change the numbers and re-run. What colour is <code>(0, 255, 0)</code>? What about <code>(255, 255, 255)</code>?</p>
+      <p class="muted small">Note: drawing functions take points as <code>(x, y)</code> but array indexing is <code>[y, x]</code>.</p></div>
+  </div>
+</section>
+
+<!-- ============ PART 2 ============ -->
+<section class="slide section">
+  <div class="num">2</div>
+  <h1>Basic transformations</h1>
+  <p class="time">20–45 min</p>
+  <p>Load, show, convert, resize, rotate and crop.</p>
+</section>
+
+<section class="slide">
+  <h2>Loading &amp; showing in Colab</h2>
+  <pre><code><span class="k">import</span> cv2, numpy <span class="k">as</span> np, matplotlib.pyplot <span class="k">as</span> plt
+<span class="k">from</span> google.colab <span class="k">import</span> files
+<span class="k">from</span> google.colab.patches <span class="k">import</span> cv2_imshow   <span class="c"># cv2.imshow() does NOT work in Colab</span>
+
+uploaded = files.upload()                  <span class="c"># opens a "Choose file" button</span>
+path = <span class="n">list</span>(uploaded)[<span class="k">0</span>]
+
+img = cv2.imread(path)                     <span class="c"># → NumPy array, BGR order</span>
+<span class="n">print</span>(img.shape, img.dtype)               <span class="c"># e.g. (720, 1280, 3) uint8</span>
+
+cv2_imshow(img)                            <span class="c"># option 1: quick look</span>
+plt.imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB)); plt.axis(<span class="s">"off"</span>)  <span class="c"># option 2</span></code></pre>
+  <p class="callout warn">If <code>cv2.imread</code> returns <code>None</code>, the path is wrong. Check the 📁 Files panel on the left.</p>
+</section>
+
+<section class="slide">
+  <h2>Converting colour spaces 🎨</h2>
+  <div class="cols">
+    <pre><code>gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)  <span class="c"># (h, w)</span>
+rgb  = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)   <span class="c"># for plt</span>
+hsv  = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)   <span class="c"># hue/sat/value</span>
+
+<span class="n">print</span>(img.shape)    <span class="c"># (720, 1280, 3)</span>
+<span class="n">print</span>(gray.shape)   <span class="c"># (720, 1280)  ← one layer!</span>
+
+plt.imshow(gray, cmap=<span class="s">"gray"</span>)</code></pre>
+    <div class="card"><h3>How is grey computed?</h3>
+      <p>A weighted mix: our eyes are most sensitive to green.</p>
+      <p><code>Y = 0.299·R + 0.587·G + 0.114·B</code></p>
+      <p class="muted small">Forgetting <code>cmap="gray"</code> in Matplotlib gives a weird yellow-purple image.</p></div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>Resizing 📏</h2>
+  <div class="cols">
+    <pre><code><span class="c"># exact size — NOTE: (width, height) order!</span>
+small = cv2.resize(img, (<span class="k">320</span>, <span class="k">240</span>))
+
+<span class="c"># scale by a factor (keeps proportions)</span>
+half = cv2.resize(img, <span class="k">None</span>, fx=<span class="k">0.5</span>, fy=<span class="k">0.5</span>)
+
+<span class="c"># keep aspect ratio for a target width</span>
+h, w = img.shape[:<span class="k">2</span>]
+new_w = <span class="k">400</span>
+new_h = <span class="n">int</span>(h * new_w / w)
+fit = cv2.resize(img, (new_w, new_h),
+                 interpolation=cv2.INTER_AREA)</code></pre>
+    <div class="card"><h3>Gotchas</h3>
+      <ul>
+        <li><code>img.shape</code> → <b>(h, w)</b> but <code>cv2.resize</code> wants <b>(w, h)</b></li>
+        <li>Shrinking? use <code>INTER_AREA</code></li>
+        <li>Enlarging? use <code>INTER_LINEAR</code> or <code>INTER_CUBIC</code></li>
+        <li>Forcing a new shape squashes or stretches the photo</li>
+      </ul></div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>Rotating 🔄 — matrices are back!</h2>
+  <div class="cols">
+    <pre><code><span class="c"># quick 90° turns and flips</span>
+r90  = cv2.rotate(img, cv2.ROTATE_90_CLOCKWISE)
+flip = cv2.flip(img, <span class="k">1</span>)          <span class="c"># 1 = left↔right, 0 = up↕down</span>
+
+<span class="c"># any angle: build a 2×3 transformation MATRIX</span>
+h, w = img.shape[:<span class="k">2</span>]
+center = (w // <span class="k">2</span>, h // <span class="k">2</span>)
+M = cv2.getRotationMatrix2D(center, <span class="k">30</span>, <span class="k">1.0</span>)  <span class="c"># 30°, scale 1</span>
+<span class="n">print</span>(M)
+rot = cv2.warpAffine(img, M, (w, h))</code></pre>
+    <div class="card"><h3>What's inside <code>M</code>?</h3>
+      <p>The rotation matrix, plus a column that shifts the picture so it spins around the centre:</p>
+      <p><code>[[ cos θ, sin θ, tx ],<br>&nbsp;[ −sin θ, cos θ, ty ]]</code></p>
+      <p>OpenCV multiplies <b>every pixel's (x, y)</b> by this matrix to find where it lands.</p></div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>Cropping = array slicing ✂️</h2>
+  <div class="stage">
+    <div>
+      <p><b>Drag on the picture</b> to choose a region of interest (ROI).</p>
+      <div class="codeline" id="cropCode">roi = img[y1:y2, x1:x2]</div>
+      <canvas id="roiCv" class="roiPrev" width="10" height="10"></canvas>
+      <p class="muted small">No copying, no special function: just <code>[rows, columns]</code>.
+        Use <code>roi.copy()</code> if you'll change it.</p>
+    </div>
+    <canvas id="cropCv" class="view" width="480" height="320"></canvas>
+  </div>
+</section>
+
+<!-- ============ PART 3 ============ -->
+<section class="slide section">
+  <div class="num">3</div>
+  <h1>Image enhancement &amp; edges</h1>
+  <p class="time">45–75 min</p>
+  <p>Clean up noise, simplify to black &amp; white, and find outlines.</p>
+</section>
+
+<section class="slide">
+  <h2>Gaussian blur: smoothing noise 🌫️</h2>
+  <div class="cols">
+    <div>
+      <p>Replace each pixel with a <b>weighted average of its neighbours</b>. Pixels near the centre count most.</p>
+      <div class="kernel"><span>1</span><span>2</span><span>1</span><span>2</span><span>4</span><span>2</span><span>1</span><span>2</span><span>1</span></div>
+      <span class="muted small">&nbsp;÷ 16 (a 3×3 Gaussian kernel)</span>
+      <pre><code>blur = cv2.GaussianBlur(gray, (<span class="k">5</span>, <span class="k">5</span>), <span class="k">0</span>)
+<span class="c">#                    kernel size ↑    ↑ sigma (0 = auto)</span></code></pre>
+    </div>
+    <div class="card"><h3>Rules of thumb</h3>
+      <ul>
+        <li>Kernel size must be <b>odd</b>: 3, 5, 7…</li>
+        <li>Bigger kernel = smoother but blurrier</li>
+        <li>Random speckles ("noise") cause fake edges, so <b>blur before edge detection</b></li>
+      </ul></div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>Binary thresholding ⚫⚪</h2>
+  <div class="cols">
+    <div>
+      <p>Pick a cut-off <b>T</b>. Every pixel becomes pure black or pure white:</p>
+      <p><code>pixel &gt; T → 255</code> &nbsp; <code>else → 0</code></p>
+      <pre><code>T, bw = cv2.threshold(gray, <span class="k">127</span>, <span class="k">255</span>, cv2.THRESH_BINARY)
+
+<span class="c"># let OpenCV choose T automatically (Otsu)</span>
+T, bw = cv2.threshold(blur, <span class="k">0</span>, <span class="k">255</span>,
+                      cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+<span class="n">print</span>(<span class="s">"Otsu picked"</span>, T)</code></pre>
+    </div>
+    <div class="card"><h3>In one line of NumPy</h3>
+      <p><code>bw = np.where(gray &gt; 127, 255, 0)</code></p>
+      <p>Used for: scanning documents, reading signs, separating an object from its background.</p>
+      <p class="muted small"><code>THRESH_BINARY_INV</code> flips it: dark things become white.</p></div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>Canny edge detector ✏️</h2>
+  <div class="flow">
+    <span class="box">Grayscale</span><span class="arr">→</span>
+    <span class="box">Blur</span><span class="arr">→</span>
+    <span class="box">Gradients<br><span class="small muted">how fast brightness changes</span></span><span class="arr">→</span>
+    <span class="box">Thin edges<br><span class="small muted">keep only the peak</span></span><span class="arr">→</span>
+    <span class="box">Two thresholds<br><span class="small muted">low &amp; high</span></span>
+  </div>
+  <div class="cols">
+    <pre><code>gray  = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+blur  = cv2.GaussianBlur(gray, (<span class="k">5</span>, <span class="k">5</span>), <span class="k">0</span>)
+edges = cv2.Canny(blur, <span class="k">50</span>, <span class="k">150</span>)   <span class="c"># low, high</span></code></pre>
+    <div class="card"><h3>The two thresholds</h3>
+      <ul>
+        <li>Stronger than <b>high</b> → definitely an edge</li>
+        <li>Weaker than <b>low</b> → thrown away</li>
+        <li>In between → kept only if touching a strong edge</li>
+      </ul>
+      <p class="muted small">Tip: start with high ≈ 3 × low.</p></div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>🎮 Image playground</h2>
+  <div class="stage">
+    <div>
+      <div class="row" id="modeBtns">
+        <button data-mode="orig" class="on">Original</button>
+        <button data-mode="gray">Gray</button>
+        <button data-mode="blur">Blur</button>
+        <button data-mode="thresh">Threshold</button>
+        <button data-mode="edges">Canny</button>
+        <button data-mode="sketch">Sketch</button>
+      </div>
+      <label class="ctl">Noise <input id="sNoise" type="range" min="0" max="80" value="0"><output id="oNoise">0</output></label>
+      <label class="ctl">Kernel <input id="sK" type="range" min="1" max="15" step="2" value="5"><output id="oK">5</output></label>
+      <label class="ctl">T <input id="sT" type="range" min="0" max="255" value="127"><output id="oT">127</output></label>
+      <label class="ctl">Low <input id="sLo" type="range" min="0" max="300" value="50"><output id="oLo">50</output></label>
+      <label class="ctl">High <input id="sHi" type="range" min="0" max="400" value="150"><output id="oHi">150</output></label>
+      <div class="codeline" id="labCode"></div>
+      <label class="upload">Try your own photo (stays on this computer): <input type="file" id="upload" accept="image/*"></label>
+    </div>
+    <canvas id="labCv" class="view" width="480" height="320"></canvas>
+  </div>
+</section>
+
+<!-- ============ PART 4 ============ -->
+<section class="slide section">
+  <div class="num">4</div>
+  <h1>In-class lab: Photo → Edge sketch</h1>
+  <p class="time">75–90 min</p>
+  <p>Put everything together in one script.</p>
+</section>
+
+<section class="slide">
+  <h2>Lab: your mission 🎯</h2>
+  <ol class="steps">
+    <li><b>Load</b> a photo (upload your own, or use the sample)</li>
+    <li><b>Crop</b> the main subject with slicing <code>img[y1:y2, x1:x2]</code></li>
+    <li>Convert to <b>grayscale</b></li>
+    <li><b>Blur</b> to remove noise</li>
+    <li>Run <b>Canny</b> to find the outlines</li>
+    <li><b>Invert</b> so lines are black on white: <code>255 - edges</code></li>
+    <li>Show original vs. sketch side by side, and <b>save</b> it</li>
+  </ol>
+  <p class="callout">Notebook: <code>class-01/colab/lab01_edge_sketch.ipynb</code>. Upload it to Colab (File → Upload notebook).</p>
+</section>
+
+<section class="slide">
+  <h2>Lab: skeleton code</h2>
+  <pre><code>img  = cv2.imread(<span class="s">"photo.jpg"</span>)
+h, w = img.shape[:<span class="k">2</span>]
+
+roi    = img[<span class="n">int</span>(h*<span class="k">.1</span>):<span class="n">int</span>(h*<span class="k">.9</span>), <span class="n">int</span>(w*<span class="k">.2</span>):<span class="n">int</span>(w*<span class="k">.8</span>)]   <span class="c"># TODO: tune for your subject</span>
+gray   = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
+blur   = cv2.GaussianBlur(gray, (<span class="k">5</span>, <span class="k">5</span>), <span class="k">0</span>)
+edges  = cv2.Canny(blur, <span class="k">50</span>, <span class="k">150</span>)
+sketch = <span class="k">255</span> - edges                                 <span class="c"># black lines, white paper</span>
+
+cv2.imwrite(<span class="s">"sketch.png"</span>, sketch)
+files.download(<span class="s">"sketch.png"</span>)</code></pre>
+  <div class="cols">
+    <div class="card"><h3>🌟 Make it cleaner</h3>
+      <p>Too many tiny lines? Blur more (7×7, 9×9) or raise the thresholds.</p></div>
+    <div class="card"><h3>🌟🌟 Thicker lines</h3>
+      <p><code>edges = cv2.dilate(edges, np.ones((2, 2), np.uint8))</code></p></div>
+  </div>
+</section>
+
+<!-- ============ HOMEWORK ============ -->
+<section class="slide">
+  <h2>🏠 Homework 1: Automated Photo Framer &amp; Batch Resizer</h2>
+  <div class="cols">
+    <div>
+      <p>Write a Colab script that takes a <b>folder of images</b> and, for each one:</p>
+      <ol class="steps">
+        <li>Resizes it to a standard size (e.g. <code>400 × 400</code>)</li>
+        <li>Converts it to grayscale</li>
+        <li>Adds a clean border around it</li>
+        <li>Saves it to an <code>output/</code> folder</li>
+      </ol>
+      <p class="muted small">Starter: <code>class-01/colab/homework01_starter.ipynb</code></p>
+    </div>
+    <div>
+      <pre><code><span class="k">import</span> glob, os
+os.makedirs(<span class="s">"output"</span>, exist_ok=<span class="k">True</span>)
+
+<span class="k">for</span> path <span class="k">in</span> glob.glob(<span class="s">"photos/*.jpg"</span>):
+    img = cv2.imread(path)
+    <span class="c"># TODO: resize, gray, border</span>
+    framed = cv2.copyMakeBorder(
+        gray, <span class="k">20</span>, <span class="k">20</span>, <span class="k">20</span>, <span class="k">20</span>,
+        cv2.BORDER_CONSTANT, value=<span class="k">255</span>)
+    name = os.path.basename(path)
+    cv2.imwrite(<span class="s">f"output/</span>{name}<span class="s">"</span>, framed)</code></pre>
+      <p class="small">🌟 Bonus: keep the aspect ratio by padding instead of stretching, or add a thin dark line inside the white frame.</p>
+    </div>
+  </div>
+</section>
+
+<section class="slide title-slide">
+  <h2>What we learned today 🎉</h2>
+  <div class="cols">
+    <div class="card"><h3>📸 Images are arrays</h3><p>Grayscale <code>(h, w)</code>, colour <code>(h, w, 3)</code> in <b>BGR</b>, values 0–255</p></div>
+    <div class="card"><h3>🔁 Transformations</h3><p><code>cvtColor</code>, <code>resize</code>, <code>rotate</code> / <code>warpAffine</code>, crop with slicing</p></div>
+    <div class="card"><h3>✨ Enhancement</h3><p><code>GaussianBlur</code>, <code>threshold</code> (incl. Otsu)</p></div>
+    <div class="card"><h3>✏️ Edges</h3><p><code>Canny</code>: blur first, then tune low / high</p></div>
+  </div>
+  <p class="big" style="margin-top:1em">Questions? 🙋</p>
+</section>
+
+<div class="bar"><i id="prog"></i></div>
+<div class="nav"><button id="prev" aria-label="Previous slide">←</button><span id="count"></span><button id="next" aria-label="Next slide">→</button></div>
+
+<script>
+(function(){
+  const $=id=>document.getElementById(id);
+  const slides=[...document.querySelectorAll('.slide')];
+  let i=Math.max(0,Math.min(slides.length-1,(parseInt(location.hash.slice(1))||1)-1));
+  function show(n){
+    i=Math.max(0,Math.min(slides.length-1,n));
+    slides.forEach((s,k)=>s.classList.toggle('active',k===i));
+    $('count').textContent=(i+1)+' / '+slides.length;
+    $('prog').style.width=((i+1)/slides.length*100)+'%';
+    history.replaceState(null,'','#'+(i+1));
+    if(slides[i].contains($('cropCv'))) drawCrop();
+    if(slides[i].contains($('labCv'))) runLab();
+  }
+  document.addEventListener('keydown',e=>{
+    if(e.target.tagName==='INPUT') return;
+    if(['ArrowRight','PageDown',' '].includes(e.key)){e.preventDefault();show(i+1)}
+    if(['ArrowLeft','PageUp'].includes(e.key)){e.preventDefault();show(i-1)}
+    if(e.key==='Home') show(0);
+    if(e.key==='End') show(slides.length-1);
+  });
+  $('prev').onclick=()=>show(i-1);
+  $('next').onclick=()=>show(i+1);
+
+  /* ---------- pixel grid (12x12 smiley) ---------- */
+  const N=12, pix=$('pix');
+  const face=[];
+  for(let y=0;y<N;y++){const r=[];for(let x=0;x<N;x++){
+    const dx=x-5.5, dy=y-5.5, d=Math.hypot(dx,dy);
+    let v = d>5.3 ? 245 : d>4.4 ? 40 : 200 - Math.round(d*12);
+    if((x===4||x===7)&&(y===4)) v=20;
+    if(y===7&&x>=4&&x<=7) v=30; if(y===6&&(x===3||x===8)) v=30;
+    r.push(Math.max(0,Math.min(255,v)))} face.push(r)}
+  let inverted=false;
+  function paintPix(){
+    pix.innerHTML='';
+    face.forEach((r,y)=>r.forEach((v0,x)=>{
+      const v=inverted?255-v0:v0, c=document.createElement('div');
+      c.style.background=`rgb(${v},${v},${v})`; c.style.color=v>128?'#222':'#eee'; c.textContent=v;
+      c.onmouseenter=()=>{$('pixOut').textContent=`img[${y}, ${x}] = ${v}`};
+      pix.appendChild(c);
+    }));
+  }
+  paintPix();
+  $('pixNum').onclick=function(){pix.classList.toggle('nonum');this.classList.toggle('on');this.textContent=pix.classList.contains('nonum')?'Numbers off':'Numbers on'};
+  $('pixInvert').onclick=function(){inverted=!inverted;this.classList.toggle('on',inverted);paintPix()};
+
+  /* ---------- RGB mixer ---------- */
+  function mix(){
+    const r=+$('rR').value,g=+$('rG').value,b=+$('rB').value;
+    $('oR').value=r;$('oG').value=g;$('oB').value=b;
+    $('swatch').style.background=`rgb(${r},${g},${b})`;
+    $('rgbCode').textContent=`RGB  = [${r}, ${g}, ${b}]\nimg[y, x] in OpenCV (BGR) = [${b}, ${g}, ${r}]`;
+  }
+  ['rR','rG','rB'].forEach(id=>$(id).addEventListener('input',mix)); mix();
+
+  /* ---------- shared source image ---------- */
+  const W=480,H=320;
+  const src=document.createElement('canvas'); src.width=W; src.height=H;
+  const sctx=src.getContext('2d');
+  function drawScene(){
+    const sky=sctx.createLinearGradient(0,0,0,H); sky.addColorStop(0,'#7fb8f0'); sky.addColorStop(1,'#d8ecff');
+    sctx.fillStyle=sky; sctx.fillRect(0,0,W,H);
+    sctx.fillStyle='#ffd23f'; sctx.beginPath(); sctx.arc(400,60,34,0,7); sctx.fill();
+    sctx.fillStyle='#ffffff'; [[90,60,22],[115,52,28],[142,62,20]].forEach(([x,y,r])=>{sctx.beginPath();sctx.arc(x,y,r,0,7);sctx.fill()});
+    sctx.fillStyle='#5fae4e'; sctx.fillRect(0,230,W,H-230);
+    sctx.fillStyle='#e8692e'; sctx.fillRect(170,150,150,100);
+    sctx.fillStyle='#8a2f1b'; sctx.beginPath(); sctx.moveTo(155,152); sctx.lineTo(245,85); sctx.lineTo(335,152); sctx.closePath(); sctx.fill();
+    sctx.fillStyle='#5a3a22'; sctx.fillRect(225,190,40,60);
+    sctx.fillStyle='#bfe3ff'; sctx.fillRect(185,170,30,28); sctx.fillRect(278,170,30,28);
+    sctx.strokeStyle='#ffffff'; sctx.lineWidth=3; sctx.strokeRect(185,170,30,28); sctx.strokeRect(278,170,30,28);
+    sctx.fillStyle='#6b4423'; sctx.fillRect(70,170,18,75);
+    sctx.fillStyle='#2f7d3a'; sctx.beginPath(); sctx.arc(79,150,42,0,7); sctx.fill();
+    sctx.fillStyle='#1d2433'; sctx.font='bold 22px sans-serif'; sctx.fillText('cv2',380,290);
+  }
+  drawScene();
+  let srcData=sctx.getImageData(0,0,W,H);
+
+  $('upload').addEventListener('change',e=>{
+    const f=e.target.files[0]; if(!f) return;
+    const url=URL.createObjectURL(f), im=new Image();
+    im.onload=()=>{
+      const s=Math.max(W/im.width,H/im.height), dw=im.width*s, dh=im.height*s;
+      sctx.drawImage(im,(W-dw)/2,(H-dh)/2,dw,dh);   // cover-fit into 480x320
+      srcData=sctx.getImageData(0,0,W,H); URL.revokeObjectURL(url);
+      runLab(); drawCrop();
+    };
+    im.src=url;
+  });
+
+  /* ---------- crop ---------- */
+  const ccv=$('cropCv'), cctx=ccv.getContext('2d');
+  let sel={x1:170,y1:85,x2:335,y2:250}, dragging=false;
+  function drawCrop(){
+    cctx.putImageData(srcData,0,0);
+    const x1=Math.min(sel.x1,sel.x2), x2=Math.max(sel.x1,sel.x2), y1=Math.min(sel.y1,sel.y2), y2=Math.max(sel.y1,sel.y2);
+    cctx.fillStyle='rgba(0,0,0,.45)';
+    cctx.fillRect(0,0,W,y1); cctx.fillRect(0,y2,W,H-y2); cctx.fillRect(0,y1,x1,y2-y1); cctx.fillRect(x2,y1,W-x2,y2-y1);
+    cctx.strokeStyle='#e8692e'; cctx.lineWidth=3; cctx.setLineDash([8,5]); cctx.strokeRect(x1,y1,x2-x1,y2-y1); cctx.setLineDash([]);
+    const w=x2-x1, h=y2-y1;
+    $('cropCode').textContent=`roi = img[${y1}:${y2}, ${x1}:${x2}]\nroi.shape  # (${h}, ${w}, 3)`;
+    const r=$('roiCv');
+    if(w>0&&h>0){r.width=w;r.height=h;r.getContext('2d').putImageData(sctx.getImageData(x1,y1,w,h),0,0)}
+  }
+  function pos(e){const b=ccv.getBoundingClientRect();return[
+    Math.round(Math.max(0,Math.min(W,(e.clientX-b.left)*W/b.width))),
+    Math.round(Math.max(0,Math.min(H,(e.clientY-b.top)*H/b.height)))]}
+  ccv.addEventListener('pointerdown',e=>{dragging=true;ccv.setPointerCapture(e.pointerId);const[x,y]=pos(e);sel={x1:x,y1:y,x2:x+1,y2:y+1};drawCrop()});
+  ccv.addEventListener('pointermove',e=>{if(!dragging)return;const[x,y]=pos(e);sel.x2=x;sel.y2=y;drawCrop()});
+  ccv.addEventListener('pointerup',()=>{dragging=false});
+
+  /* ---------- image processing (mirrors OpenCV) ---------- */
+  function rand(seed){return()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296}}
+  function noisyRGB(amount){
+    const out=new Uint8ClampedArray(srcData.data); if(!amount) return out;
+    const rnd=rand(42);
+    for(let p=0;p<out.length;p+=4){
+      const n=(rnd()+rnd()+rnd()-1.5)*amount*1.4;
+      out[p]+=n; out[p+1]+=n; out[p+2]+=n;
+    } return out;
+  }
+  function toGray(rgba){const g=new Float32Array(W*H);
+    for(let k=0,p=0;k<g.length;k++,p+=4) g[k]=0.299*rgba[p]+0.587*rgba[p+1]+0.114*rgba[p+2]; return g}
+  function gauss(g,k){
+    if(k<=1) return g;
+    const sigma=0.3*((k-1)*0.5-1)+0.8, r=(k-1)/2, ker=[]; let s=0;
+    for(let t=-r;t<=r;t++){const v=Math.exp(-(t*t)/(2*sigma*sigma));ker.push(v);s+=v}
+    for(let t=0;t<ker.length;t++) ker[t]/=s;
+    const tmp=new Float32Array(W*H), out=new Float32Array(W*H);
+    const cl=(v,m)=>v<0?-v:v>=m?2*m-v-2:v; // reflect border (like OpenCV BORDER_REFLECT_101)
+    for(let y=0;y<H;y++)for(let x=0;x<W;x++){let a=0;for(let t=-r;t<=r;t++)a+=g[y*W+cl(x+t,W)]*ker[t+r];tmp[y*W+x]=a}
+    for(let y=0;y<H;y++)for(let x=0;x<W;x++){let a=0;for(let t=-r;t<=r;t++)a+=tmp[cl(y+t,H)*W+x]*ker[t+r];out[y*W+x]=a}
+    return out;
+  }
+  function canny(g,lo,hi){
+    const mag=new Float32Array(W*H), dir=new Uint8Array(W*H);
+    for(let y=1;y<H-1;y++)for(let x=1;x<W-1;x++){
+      const q=y*W+x, a=g[q-W-1],b=g[q-W],c=g[q-W+1],d=g[q-1],f=g[q+1],h2=g[q+W-1],m=g[q+W],n=g[q+W+1];
+      const gx=(c+2*f+n)-(a+2*d+h2), gy=(h2+2*m+n)-(a+2*b+c);
+      mag[q]=Math.abs(gx)+Math.abs(gy);               // OpenCV default: L1 gradient
+      let ang=Math.atan2(gy,gx)*180/Math.PI; if(ang<0) ang+=180;
+      dir[q]=ang<22.5||ang>=157.5?0:ang<67.5?1:ang<112.5?2:3;
+    }
+    const out=new Uint8Array(W*H), stack=[];
+    const off=[[1,-1],[W+1,-W-1],[W,-W],[W-1,-W+1]];
+    for(let y=1;y<H-1;y++)for(let x=1;x<W-1;x++){
+      const q=y*W+x, v=mag[q]; if(v<=lo) continue;
+      const [o1,o2]=off[dir[q]];
+      if(v<mag[q+o1]||v<mag[q+o2]) continue;          // non-maximum suppression
+      if(v>hi){out[q]=255;stack.push(q)} else out[q]=1; // 1 = weak candidate
+    }
+    while(stack.length){const q=stack.pop();
+      for(const o of [-W-1,-W,-W+1,-1,1,W-1,W,W+1]){const p=q+o;if(out[p]===1){out[p]=255;stack.push(p)}}}
+    for(let k=0;k<out.length;k++) if(out[k]!==255) out[k]=0;
+    return out;
+  }
+
+  /* ---------- playground ---------- */
+  const lcv=$('labCv'), lctx=lcv.getContext('2d');
+  let mode='orig';
+  document.querySelectorAll('#modeBtns button').forEach(b=>b.onclick=()=>{
+    mode=b.dataset.mode; document.querySelectorAll('#modeBtns button').forEach(x=>x.classList.toggle('on',x===b)); runLab()});
+  ['sNoise','sK','sT','sLo','sHi'].forEach(id=>$(id).addEventListener('input',runLab));
+  function runLab(){
+    const noise=+$('sNoise').value, k=+$('sK').value, T=+$('sT').value;
+    let lo=+$('sLo').value, hi=+$('sHi').value;
+    $('oNoise').value=noise;$('oK').value=k;$('oT').value=T;$('oLo').value=lo;$('oHi').value=hi;
+    if(lo>hi){[lo,hi]=[hi,lo]}
+    const rgba=noisyRGB(noise), img=new ImageData(W,H);
+    const codes={
+      orig:  `img = cv2.imread("photo.jpg")`,
+      gray:  `gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)`,
+      blur:  `blur = cv2.GaussianBlur(gray, (${k}, ${k}), 0)`,
+      thresh:`blur = cv2.GaussianBlur(gray, (${k}, ${k}), 0)\n_, bw = cv2.threshold(blur, ${T}, 255, cv2.THRESH_BINARY)`,
+      edges: `blur  = cv2.GaussianBlur(gray, (${k}, ${k}), 0)\nedges = cv2.Canny(blur, ${lo}, ${hi})`,
+      sketch:`blur   = cv2.GaussianBlur(gray, (${k}, ${k}), 0)\nedges  = cv2.Canny(blur, ${lo}, ${hi})\nsketch = 255 - edges`
+    };
+    $('labCode').textContent=codes[mode];
+    if(mode==='orig'){img.data.set(rgba); lctx.putImageData(img,0,0); return}
+    let g=toGray(rgba), out;
+    if(mode==='gray') out=g;
+    else { g=gauss(g,k);
+      if(mode==='blur') out=g;
+      else if(mode==='thresh'){out=new Float32Array(W*H);for(let q=0;q<out.length;q++)out[q]=g[q]>T?255:0}
+      else { const e=canny(g,lo,hi); out=new Float32Array(W*H);
+        for(let q=0;q<out.length;q++) out[q]=mode==='sketch'?255-e[q]:e[q]; }
+    }
+    const d=img.data;
+    for(let q=0,p=0;q<out.length;q++,p+=4){d[p]=d[p+1]=d[p+2]=out[q];d[p+3]=255}
+    lctx.putImageData(img,0,0);
+  }
+  show(i);
+})();
+</script>
+</body>
+</html>

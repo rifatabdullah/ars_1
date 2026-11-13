@@ -1,0 +1,533 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Class 1 — Python & Matrices</title>
+<style>
+  :root{
+    --bg:#fbf8f2; --ink:#1d2433; --muted:#5b6475; --accent:#e8692e; --accent2:#2f7dd1;
+    --card:#ffffff; --line:#e6e0d4; --code-bg:#1e2230; --code-ink:#e9edf5; --good:#2e9a5b;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
+    font:20px/1.5 "Segoe UI",system-ui,-apple-system,Roboto,sans-serif}
+  .slide{position:absolute;inset:0;display:none;flex-direction:column;justify-content:center;
+    padding:5vh clamp(20px,7vw,120px) 9vh;overflow:auto}
+  .slide.active{display:flex}
+  h1{font-size:clamp(2rem,5vw,3.4rem);line-height:1.1;margin:0 0 .4em}
+  h2{font-size:clamp(1.5rem,3.4vw,2.3rem);margin:0 0 .6em;color:var(--ink)}
+  h2 .tag{font-size:.5em;vertical-align:middle;background:var(--accent);color:#fff;
+    padding:.15em .6em;border-radius:99px;margin-right:.5em;font-weight:600}
+  p,li{max-width:62ch}
+  ul{padding-left:1.2em} li{margin:.3em 0}
+  .muted{color:var(--muted)}
+  .big{font-size:1.4em}
+  em{color:var(--accent);font-style:normal;font-weight:600}
+  code{font-family:"JetBrains Mono","Fira Code",Consolas,monospace;font-size:.88em;
+    background:#efe8da;padding:.05em .35em;border-radius:5px}
+  pre{background:var(--code-bg);color:var(--code-ink);padding:1em 1.2em;border-radius:12px;
+    overflow-x:auto;font-size:.8em;line-height:1.45;margin:.4em 0;max-width:100%}
+  pre code{background:none;padding:0;color:inherit;font-size:1em}
+  .c{color:#8a93a8} .k{color:#ff9e64} .s{color:#9ece6a} .n{color:#7dcfff}
+  .cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1.4em;align-items:start}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:1em 1.2em}
+  .card h3{margin:.1em 0 .4em;font-size:1.05em}
+  .title-slide{background:linear-gradient(135deg,#fff3e6 0%,#eaf3ff 100%)}
+  .emoji{font-size:2.4em;line-height:1}
+  .matrix{display:inline-grid;gap:.15em .9em;padding:.2em .6em;border-left:3px solid var(--ink);
+    border-right:3px solid var(--ink);border-radius:6px;font-family:Consolas,monospace;font-size:1.2em;
+    text-align:center;vertical-align:middle}
+  .eq{display:flex;align-items:center;gap:.7em;flex-wrap:wrap;font-size:1.1em;margin:.6em 0}
+  .hl-r{color:var(--accent);font-weight:700} .hl-b{color:var(--accent2);font-weight:700}
+  .steps{counter-reset:s;list-style:none;padding:0}
+  .steps li{counter-increment:s;padding-left:2.2em;position:relative}
+  .steps li::before{content:counter(s);position:absolute;left:0;top:.1em;width:1.6em;height:1.6em;
+    border-radius:50%;background:var(--accent2);color:#fff;font-size:.8em;display:grid;place-items:center;font-weight:700}
+  .callout{border-left:5px solid var(--accent);background:#fff;padding:.6em 1em;border-radius:0 10px 10px 0;margin:.8em 0}
+  /* playground */
+  .play{display:grid;grid-template-columns:minmax(240px,320px) 1fr;gap:1.5em;align-items:center}
+  @media (max-width:760px){.play{grid-template-columns:1fr}}
+  .mgrid{display:grid;grid-template-columns:1fr 1fr;gap:.5em;margin:.5em 0}
+  .mgrid input{font:inherit;font-size:1.2em;width:100%;padding:.3em;text-align:center;
+    border:2px solid var(--line);border-radius:8px;background:#fff;color:var(--ink)}
+  .presets{display:flex;flex-wrap:wrap;gap:.4em}
+  button{font:inherit;font-size:.75em;padding:.35em .8em;border-radius:99px;border:1px solid var(--line);
+    background:#fff;color:var(--ink);cursor:pointer}
+  button:hover{border-color:var(--accent);color:var(--accent)}
+  canvas{width:100%;max-width:520px;aspect-ratio:1;background:#fff;border:1px solid var(--line);border-radius:14px}
+  /* chrome */
+  .bar{position:fixed;left:0;right:0;bottom:0;height:5px;background:var(--line)}
+  .bar i{display:block;height:100%;background:var(--accent);transition:width .25s}
+  .nav{position:fixed;right:18px;bottom:16px;display:flex;gap:.5em;align-items:center;
+    font-size:.7em;color:var(--muted)}
+  .nav button{font-size:1em}
+  .section{background:var(--ink);color:#fff}
+  .section h1{color:#fff} .section p{color:#c9d1e3}
+  .section .num{font-size:5em;font-weight:800;color:var(--accent);line-height:1}
+</style>
+</head>
+<body>
+
+<!-- 1 -->
+<section class="slide title-slide">
+  <div class="emoji">🐍 ➕ 🔢</div>
+  <h1>Class 1<br>Python Basics &amp; Matrix Magic</h1>
+  <p class="big muted">Environment setup · Python building blocks · Matrices · Transformations</p>
+  <p class="muted">Use ← → (or space) to move through slides</p>
+</section>
+
+<!-- 2 -->
+<section class="slide">
+  <h2>Today's adventure 🗺️</h2>
+  <ol class="steps">
+    <li><b>Set up our coding workshop</b> — Python, a terminal, and a virtual environment</li>
+    <li><b>Talk to the computer</b> — variables, types, lists, if, loops, functions</li>
+    <li><b>Meet the matrix</b> — grids of numbers, and how to add &amp; multiply them</li>
+    <li><b>Make shapes move</b> — use matrices to stretch, spin and flip pictures</li>
+  </ol>
+  <p class="callout">By the end, you'll write code that <em>rotates a house</em> on screen!</p>
+</section>
+
+<!-- ============ PART 1 ============ -->
+<section class="slide section">
+  <div class="num">1</div>
+  <h1>Setting up our workshop</h1>
+  <p>Every builder needs a tidy toolbox.</p>
+</section>
+
+<section class="slide">
+  <h2>What is Python? 🐍</h2>
+  <div class="cols">
+    <div class="card"><h3>A language for computers</h3>
+      <p>We write instructions in Python, and the computer follows them — exactly, and very fast.</p></div>
+    <div class="card"><h3>Easy to read</h3>
+      <p>Python looks almost like English: <code>print("Hi!")</code></p></div>
+    <div class="card"><h3>Used everywhere</h3>
+      <p>Games, robots, websites, science, AI, and the special effects in movies.</p></div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>Our tools 🧰</h2>
+  <div class="cols">
+    <div class="card"><h3>💻 Terminal</h3><p>A window where we type commands to the computer.</p></div>
+    <div class="card"><h3>🐍 Python</h3><p>The program that reads and runs our <code>.py</code> files.</p></div>
+    <div class="card"><h3>📦 venv</h3><p>A private toolbox for <em>this</em> project, so libraries don't get mixed up.</p></div>
+    <div class="card"><h3>📚 Libraries</h3><p><b>NumPy</b> (matrices) and <b>Matplotlib</b> (drawing pictures).</p></div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>Why a virtual environment?</h2>
+  <p>Imagine every project shares one big toy box. Project A needs Lego v1, project B needs Lego v2… 💥 chaos!</p>
+  <p>A <em>virtual environment</em> (<code>venv</code>) gives each project its <b>own little box</b>.</p>
+  <pre><code>WorkShop Class/
+├── <span class="n">.venv/</span>            <span class="c">← our private toolbox (Python + NumPy + Matplotlib)</span>
+├── requirements.txt  <span class="c">← the shopping list of libraries</span>
+├── setup.sh          <span class="c">← one command to build everything</span>
+└── class-01/
+    ├── slides.html
+    ├── examples/
+    └── exercises/</code></pre>
+</section>
+
+<section class="slide">
+  <h2>Setting up, step by step</h2>
+  <ol class="steps">
+    <li>Check Python is installed:<pre><code>python3 --version</code></pre></li>
+    <li>Create the environment:<pre><code>python3 -m venv .venv</code></pre></li>
+    <li>Switch it on (activate):<pre><code>source .venv/bin/activate        <span class="c"># Linux / macOS</span>
+.venv\Scripts\activate           <span class="c"># Windows</span></code></pre></li>
+    <li>Install the libraries:<pre><code>pip install -r requirements.txt</code></pre></li>
+  </ol>
+  <p class="muted">Shortcut: <code>./setup.sh</code> does steps 2 &amp; 4 for you.</p>
+</section>
+
+<section class="slide">
+  <h2>Did it work? ✅</h2>
+  <p>When the venv is active, your prompt shows <code>(.venv)</code> at the start:</p>
+  <pre><code>(.venv) $ python -c "import numpy; print('NumPy is ready!')"
+NumPy is ready!</code></pre>
+  <p>Run your first program:</p>
+  <pre><code>(.venv) $ python class-01/examples/01_hello.py</code></pre>
+  <p class="callout">Finished for the day? Type <code>deactivate</code> to close the toolbox.</p>
+</section>
+
+<!-- ============ PART 2 ============ -->
+<section class="slide section">
+  <div class="num">2</div>
+  <h1>Python basics</h1>
+  <p>Learning to talk to the computer.</p>
+</section>
+
+<section class="slide">
+  <h2><span class="tag">01_hello.py</span>Hello, world!</h2>
+  <pre><code><span class="n">print</span>(<span class="s">"Hello, world!"</span>)
+
+name = <span class="n">input</span>(<span class="s">"What is your name? "</span>)
+age  = <span class="n">int</span>(<span class="n">input</span>(<span class="s">"How old are you? "</span>))
+
+<span class="n">print</span>(<span class="s">f"</span>{name}<span class="s"> will be </span>{age + 10}<span class="s"> in 10 years!"</span>)</code></pre>
+  <ul>
+    <li><code>print()</code> shows something on screen</li>
+    <li><code>input()</code> asks the user a question</li>
+    <li><code>int()</code> turns text like <code>"12"</code> into the number <code>12</code></li>
+  </ul>
+</section>
+
+<section class="slide">
+  <h2>Variables are labelled boxes 📦</h2>
+  <div class="cols">
+    <div>
+      <pre><code>score    = <span class="k">42</span>       <span class="c"># int</span>
+height   = <span class="k">1.45</span>     <span class="c"># float</span>
+pet      = <span class="s">"cat"</span>    <span class="c"># str</span>
+is_happy = <span class="k">True</span>     <span class="c"># bool</span></code></pre>
+    </div>
+    <div class="card">
+      <h3>The 4 basic types</h3>
+      <ul>
+        <li><b>int</b> — whole numbers</li>
+        <li><b>float</b> — decimal numbers</li>
+        <li><b>str</b> — text, in quotes</li>
+        <li><b>bool</b> — <code>True</code> or <code>False</code></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>Python is a calculator 🧮</h2>
+  <div class="cols">
+    <pre><code><span class="k">7</span> + <span class="k">3</span>    <span class="c"># 10</span>
+<span class="k">7</span> - <span class="k">3</span>    <span class="c"># 4</span>
+<span class="k">7</span> * <span class="k">3</span>    <span class="c"># 21   multiply</span>
+<span class="k">7</span> / <span class="k">3</span>    <span class="c"># 2.33 divide</span>
+<span class="k">7</span> // <span class="k">3</span>   <span class="c"># 2    whole-number divide</span>
+<span class="k">7</span> % <span class="k">3</span>    <span class="c"># 1    remainder</span>
+<span class="k">2</span> ** <span class="k">5</span>   <span class="c"># 32   power</span></code></pre>
+    <div class="card"><h3>Try it!</h3>
+      <p>Type <code>python</code> in the terminal to open the <b>interactive shell</b> (<code>&gt;&gt;&gt;</code>) and try each line.</p>
+      <p>Type <code>exit()</code> to leave.</p></div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>Lists — many things in one box</h2>
+  <pre><code>fruits = [<span class="s">"apple"</span>, <span class="s">"banana"</span>, <span class="s">"mango"</span>]
+
+<span class="n">print</span>(fruits[<span class="k">0</span>])         <span class="c"># apple   ← counting starts at 0!</span>
+fruits.append(<span class="s">"kiwi"</span>)     <span class="c"># add to the end</span>
+<span class="n">print</span>(<span class="n">len</span>(fruits))       <span class="c"># 4</span></code></pre>
+  <p class="callout">Remember lists — a <em>matrix</em> is just a <b>list of lists</b>!</p>
+</section>
+
+<section class="slide">
+  <h2>Making decisions: <code>if</code></h2>
+  <pre><code>temperature = <span class="k">31</span>
+
+<span class="k">if</span> temperature &gt; <span class="k">30</span>:
+    <span class="n">print</span>(<span class="s">"It's hot! 🥵"</span>)
+<span class="k">elif</span> temperature &gt; <span class="k">15</span>:
+    <span class="n">print</span>(<span class="s">"Nice weather 😎"</span>)
+<span class="k">else</span>:
+    <span class="n">print</span>(<span class="s">"Brr, cold! 🥶"</span>)</code></pre>
+  <p>⚠️ The <b>colon</b> <code>:</code> and the <b>indent</b> (4 spaces) matter in Python!</p>
+</section>
+
+<section class="slide">
+  <h2>Repeating things: loops 🔁</h2>
+  <div class="cols">
+    <div><h3>for — go through each item</h3>
+<pre><code><span class="k">for</span> i <span class="k">in</span> <span class="n">range</span>(<span class="k">1</span>, <span class="k">6</span>):
+    <span class="n">print</span>(i, <span class="s">"x 7 ="</span>, i * <span class="k">7</span>)</code></pre></div>
+    <div><h3>while — keep going until…</h3>
+<pre><code>count = <span class="k">3</span>
+<span class="k">while</span> count &gt; <span class="k">0</span>:
+    <span class="n">print</span>(count)
+    count -= <span class="k">1</span>
+<span class="n">print</span>(<span class="s">"Blast off! 🚀"</span>)</code></pre></div>
+  </div>
+  <p class="muted"><code>range(1, 6)</code> gives 1, 2, 3, 4, 5 — it stops <i>before</i> 6.</p>
+</section>
+
+<section class="slide">
+  <h2>Functions — your own commands 🛠️</h2>
+  <pre><code><span class="k">def</span> <span class="n">area_of_rectangle</span>(width, height):
+    <span class="k">return</span> width * height
+
+<span class="n">print</span>(area_of_rectangle(<span class="k">4</span>, <span class="k">5</span>))   <span class="c"># 20</span>
+<span class="n">print</span>(area_of_rectangle(<span class="k">10</span>, <span class="k">2</span>))  <span class="c"># 20</span></code></pre>
+  <ul>
+    <li><code>def</code> = "define" a new function</li>
+    <li>The values in <code>( )</code> are <b>inputs</b></li>
+    <li><code>return</code> sends the answer back</li>
+  </ul>
+  <p class="muted">Full example: <code>examples/02_basics.py</code></p>
+</section>
+
+<!-- ============ PART 3 ============ -->
+<section class="slide section">
+  <div class="num">3</div>
+  <h1>Matrix foundations</h1>
+  <p>Grids of numbers with superpowers.</p>
+</section>
+
+<section class="slide">
+  <h2>What is a matrix?</h2>
+  <p>A matrix is a <em>rectangle of numbers</em>, arranged in <b>rows</b> and <b>columns</b>.</p>
+  <div class="eq">A =
+    <span class="matrix" style="grid-template-columns:repeat(3,auto)"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span></span>
+    <span class="muted">← 2 rows, 3 columns: a <b>2 × 3</b> matrix</span>
+  </div>
+  <div class="cols">
+    <div class="card"><h3>Where are matrices?</h3>
+      <ul><li>📸 Every photo is a matrix of pixels</li><li>🎮 Games use them to move &amp; spin characters</li><li>📊 Spreadsheets &amp; seating charts</li></ul></div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2><span class="tag">03_matrix_with_lists.py</span>A matrix in Python</h2>
+  <pre><code>A = [
+    [<span class="k">1</span>, <span class="k">2</span>],     <span class="c"># row 0</span>
+    [<span class="k">3</span>, <span class="k">4</span>],     <span class="c"># row 1</span>
+]
+
+<span class="n">print</span>(A[<span class="k">0</span>])       <span class="c"># [1, 2]   the whole first row</span>
+<span class="n">print</span>(A[<span class="k">1</span>][<span class="k">0</span>])    <span class="c"># 3        row 1, column 0</span></code></pre>
+  <p class="callout">Read it as <code>A[row][column]</code>. Both start counting at <b>0</b>.</p>
+</section>
+
+<section class="slide">
+  <h2>Adding &amp; scaling matrices</h2>
+  <p><b>Adding:</b> add the numbers in the same spot.</p>
+  <div class="eq">
+    <span class="matrix" style="grid-template-columns:repeat(2,auto)"><span>1</span><span>2</span><span>3</span><span>4</span></span> +
+    <span class="matrix" style="grid-template-columns:repeat(2,auto)"><span>5</span><span>6</span><span>7</span><span>8</span></span> =
+    <span class="matrix" style="grid-template-columns:repeat(2,auto)"><span>6</span><span>8</span><span>10</span><span>12</span></span>
+  </div>
+  <p><b>Scaling:</b> multiply every number by the same amount.</p>
+  <div class="eq">10 ×
+    <span class="matrix" style="grid-template-columns:repeat(2,auto)"><span>1</span><span>2</span><span>3</span><span>4</span></span> =
+    <span class="matrix" style="grid-template-columns:repeat(2,auto)"><span>10</span><span>20</span><span>30</span><span>40</span></span>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>Multiplying matrices: row × column</h2>
+  <p>Each answer = a <span class="hl-r">row</span> from the left matrix "dotted" with a <span class="hl-b">column</span> from the right.</p>
+  <div class="eq">
+    <span class="matrix" style="grid-template-columns:repeat(2,auto)"><span class="hl-r">1</span><span class="hl-r">2</span><span>3</span><span>4</span></span> ×
+    <span class="matrix" style="grid-template-columns:repeat(2,auto)"><span class="hl-b">5</span><span>6</span><span class="hl-b">7</span><span>8</span></span> =
+    <span class="matrix" style="grid-template-columns:repeat(2,auto)"><span><b>19</b></span><span>22</span><span>43</span><span>50</span></span>
+  </div>
+  <p>Top-left: <span class="hl-r">1</span>×<span class="hl-b">5</span> + <span class="hl-r">2</span>×<span class="hl-b">7</span> = 5 + 14 = <b>19</b></p>
+  <p class="callout">⚠️ Order matters! <code>A × B</code> is <b>not</b> the same as <code>B × A</code>.</p>
+</section>
+
+<section class="slide">
+  <h2><span class="tag">04_numpy_matrices.py</span>NumPy makes it easy</h2>
+  <pre><code><span class="k">import</span> numpy <span class="k">as</span> np
+
+A = np.array([[<span class="k">1</span>, <span class="k">2</span>], [<span class="k">3</span>, <span class="k">4</span>]])
+B = np.array([[<span class="k">5</span>, <span class="k">6</span>], [<span class="k">7</span>, <span class="k">8</span>]])
+
+A.shape    <span class="c"># (2, 2)</span>
+A + B      <span class="c"># add</span>
+<span class="k">10</span> * A     <span class="c"># scale</span>
+A @ B      <span class="c"># matrix multiply  ← use @ !</span>
+A.T        <span class="c"># transpose: rows become columns</span>
+np.eye(<span class="k">2</span>)  <span class="c"># identity matrix: the "do nothing" matrix</span></code></pre>
+  <p class="muted">Careful: <code>A * B</code> multiplies number-by-number — that's different from <code>A @ B</code>.</p>
+</section>
+
+<!-- ============ PART 4 ============ -->
+<section class="slide section">
+  <div class="num">4</div>
+  <h1>Transformations</h1>
+  <p>Using matrices to move shapes.</p>
+</section>
+
+<section class="slide">
+  <h2>Points are tiny matrices</h2>
+  <p>A point <code>(x, y)</code> can be written as a <b>column</b>:</p>
+  <div class="eq">p = <span class="matrix" style="grid-template-columns:auto"><span>x</span><span>y</span></span></div>
+  <p>Multiply it by a 2×2 matrix and you get a <em>new point</em>:</p>
+  <div class="eq">
+    <span class="matrix" style="grid-template-columns:repeat(2,auto)"><span>a</span><span>b</span><span>c</span><span>d</span></span>
+    <span class="matrix" style="grid-template-columns:auto"><span>x</span><span>y</span></span> =
+    <span class="matrix" style="grid-template-columns:auto"><span>a·x + b·y</span><span>c·x + d·y</span></span>
+  </div>
+  <p class="callout">Do this to <b>every corner</b> of a shape, and the whole shape moves!</p>
+</section>
+
+<section class="slide">
+  <h2>The transformation zoo 🦁</h2>
+  <div class="cols">
+    <div class="card"><h3>🔍 Scale</h3>
+      <span class="matrix" style="grid-template-columns:repeat(2,auto)"><span>2</span><span>0</span><span>0</span><span>2</span></span>
+      <p>Twice as big</p></div>
+    <div class="card"><h3>🪞 Mirror</h3>
+      <span class="matrix" style="grid-template-columns:repeat(2,auto)"><span>-1</span><span>0</span><span>0</span><span>1</span></span>
+      <p>Flip left ↔ right</p></div>
+    <div class="card"><h3>🔄 Rotate 90°</h3>
+      <span class="matrix" style="grid-template-columns:repeat(2,auto)"><span>0</span><span>-1</span><span>1</span><span>0</span></span>
+      <p>Quarter turn, anticlockwise</p></div>
+    <div class="card"><h3>📐 Shear</h3>
+      <span class="matrix" style="grid-template-columns:repeat(2,auto)"><span>1</span><span>1</span><span>0</span><span>1</span></span>
+      <p>Slant like italics</p></div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>Rotation by any angle</h2>
+  <div class="eq">R(θ) =
+    <span class="matrix" style="grid-template-columns:repeat(2,auto)"><span>cos θ</span><span>−sin θ</span><span>sin θ</span><span>cos θ</span></span>
+  </div>
+  <pre><code><span class="k">import</span> math
+angle = math.radians(<span class="k">45</span>)
+R = np.array([[math.cos(angle), -math.sin(angle)],
+              [math.sin(angle),  math.cos(angle)]])</code></pre>
+  <p class="muted">Don't worry about <i>why</i> this works yet — just see what it <i>does</i>!</p>
+</section>
+
+<section class="slide">
+  <h2>🎮 Matrix playground</h2>
+  <div class="play">
+    <div>
+      <p>Change the numbers and watch the house move. Grey = before, orange = after.</p>
+      <div class="mgrid">
+        <input id="ma" type="number" step="0.1" value="1" aria-label="a">
+        <input id="mb" type="number" step="0.1" value="0" aria-label="b">
+        <input id="mc" type="number" step="0.1" value="0" aria-label="c">
+        <input id="md" type="number" step="0.1" value="1" aria-label="d">
+      </div>
+      <div class="presets">
+        <button data-m="1,0,0,1">Identity</button>
+        <button data-m="1.5,0,0,1.5">Scale</button>
+        <button data-m="2,0,0,1">Stretch</button>
+        <button data-m="-1,0,0,1">Mirror</button>
+        <button data-m="1,0,0,-1">Upside-down</button>
+        <button data-m="0,-1,1,0">Rotate 90°</button>
+        <button data-m="1,0.8,0,1">Shear</button>
+        <button id="spin">Spin! ▶</button>
+      </div>
+    </div>
+    <canvas id="cv" width="600" height="600"></canvas>
+  </div>
+</section>
+
+<section class="slide">
+  <h2><span class="tag">05_transformations.py</span>Now in Python</h2>
+  <pre><code><span class="c"># each COLUMN is one corner of the house</span>
+house = np.array([[<span class="k">0</span>, <span class="k">2</span>, <span class="k">2</span>, <span class="k">1</span>, <span class="k">0</span>, <span class="k">0</span>],    <span class="c"># x values</span>
+                  [<span class="k">0</span>, <span class="k">0</span>, <span class="k">2</span>, <span class="k">3</span>, <span class="k">2</span>, <span class="k">0</span>]])   <span class="c"># y values</span>
+
+M = np.array([[<span class="k">0</span>, -<span class="k">1</span>],
+              [<span class="k">1</span>,  <span class="k">0</span>]])          <span class="c"># rotate 90°</span>
+
+new_house = M @ house             <span class="c"># ← moves ALL corners at once!</span>
+
+plt.fill(*house, color=<span class="s">"lightgray"</span>)
+plt.fill(*new_house, color=<span class="s">"orange"</span>)
+plt.show()</code></pre>
+  <pre><code>python class-01/examples/05_transformations.py</code></pre>
+</section>
+
+<section class="slide">
+  <h2>Combining transformations ✨</h2>
+  <p>Want to rotate <b>and then</b> scale? Multiply the matrices together!</p>
+  <pre><code>combo = Scale @ Rotate        <span class="c"># read right-to-left: rotate first, then scale</span>
+new_house = combo @ house</code></pre>
+  <p class="callout">This is exactly how video games move characters — thousands of times per second.</p>
+</section>
+
+<!-- ============ WRAP UP ============ -->
+<section class="slide">
+  <h2>Your turn! 🏆</h2>
+  <p>Open <code>class-01/exercises/exercises.py</code> and fill in each <code>TODO</code>:</p>
+  <ol class="steps">
+    <li>Make a variable and print it × 3</li>
+    <li>Print the 5 times table with a loop</li>
+    <li>Write <code>is_even(n)</code></li>
+    <li>Build a 3×3 NumPy matrix of 1…9</li>
+    <li>Double the point (3, 1) with a matrix</li>
+    <li>🌟 Challenge: rotate (1, 0) by 90°</li>
+  </ol>
+</section>
+
+<section class="slide title-slide">
+  <h2>What we learned today 🎉</h2>
+  <div class="cols">
+    <div class="card"><h3>Setup</h3><p>Python, terminal, <code>venv</code>, <code>pip install</code></p></div>
+    <div class="card"><h3>Python</h3><p>variables, types, lists, <code>if</code>, loops, functions</p></div>
+    <div class="card"><h3>Matrices</h3><p>rows &amp; columns, add, scale, multiply with <code>@</code></p></div>
+    <div class="card"><h3>Transformations</h3><p>scale, mirror, rotate, shear — all with one multiply</p></div>
+  </div>
+  <p class="big" style="margin-top:1em">Next time: more Python power-ups! 🚀</p>
+</section>
+
+<div class="bar"><i id="prog"></i></div>
+<div class="nav"><button id="prev" aria-label="Previous slide">←</button><span id="count"></span><button id="next" aria-label="Next slide">→</button></div>
+
+<script>
+(function(){
+  const slides=[...document.querySelectorAll('.slide')];
+  let i=Math.max(0,Math.min(slides.length-1,(parseInt(location.hash.slice(1))||1)-1));
+  function show(n){
+    i=Math.max(0,Math.min(slides.length-1,n));
+    slides.forEach((s,k)=>s.classList.toggle('active',k===i));
+    document.getElementById('count').textContent=(i+1)+' / '+slides.length;
+    document.getElementById('prog').style.width=((i+1)/slides.length*100)+'%';
+    history.replaceState(null,'','#'+(i+1));
+    if(slides[i].querySelector('#cv')) draw();
+  }
+  document.addEventListener('keydown',e=>{
+    if(e.target.tagName==='INPUT') return;
+    if(['ArrowRight','PageDown',' '].includes(e.key)){e.preventDefault();show(i+1)}
+    if(['ArrowLeft','PageUp'].includes(e.key)){e.preventDefault();show(i-1)}
+    if(e.key==='Home') show(0);
+    if(e.key==='End') show(slides.length-1);
+  });
+  document.getElementById('prev').onclick=()=>show(i-1);
+  document.getElementById('next').onclick=()=>show(i+1);
+
+  // ---- matrix playground ----
+  const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
+  const ids=['ma','mb','mc','md'], inputs=ids.map(id=>document.getElementById(id));
+  const house=[[0,0],[2,0],[2,2],[1,3],[0,2]];
+  const S=50, O=300;
+  const X=x=>O+x*S, Y=y=>O-y*S;
+  function poly(pts,fill,stroke){
+    ctx.beginPath(); pts.forEach(([x,y],k)=>k?ctx.lineTo(X(x),Y(y)):ctx.moveTo(X(x),Y(y)));
+    ctx.closePath(); ctx.fillStyle=fill; ctx.fill(); ctx.strokeStyle=stroke; ctx.lineWidth=3; ctx.stroke();
+  }
+  function draw(){
+    const [a,b,c,d]=inputs.map(el=>parseFloat(el.value)||0);
+    ctx.clearRect(0,0,600,600);
+    ctx.strokeStyle='#eee'; ctx.lineWidth=1;
+    for(let k=-6;k<=6;k++){ctx.beginPath();ctx.moveTo(X(k),0);ctx.lineTo(X(k),600);ctx.moveTo(0,Y(k));ctx.lineTo(600,Y(k));ctx.stroke();}
+    ctx.strokeStyle='#999'; ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(0,O);ctx.lineTo(600,O);ctx.moveTo(O,0);ctx.lineTo(O,600);ctx.stroke();
+    poly(house,'rgba(160,160,160,.35)','#aaa');
+    poly(house.map(([x,y])=>[a*x+b*y,c*x+d*y]),'rgba(232,105,46,.6)','#c4471a');
+    // door marker so mirror/rotation is visible
+    const dx=0.8,dy=0;const [p,q]=[a*dx+b*dy,c*dx+d*dy];
+    ctx.fillStyle='#1d2433';ctx.beginPath();ctx.arc(X(p),Y(q),6,0,7);ctx.fill();
+  }
+  inputs.forEach(el=>el.addEventListener('input',()=>{stop();draw()}));
+  let timer=null;
+  function set(vals){vals.forEach((v,k)=>inputs[k].value=+(+v).toFixed(2));draw();}
+  function stop(){if(timer){clearInterval(timer);timer=null;document.getElementById('spin').textContent='Spin! ▶'}}
+  document.querySelectorAll('[data-m]').forEach(btn=>btn.onclick=()=>{stop();set(btn.dataset.m.split(','))});
+  document.getElementById('spin').onclick=function(){
+    if(timer){stop();return}
+    let t=0;this.textContent='Stop ■';
+    timer=setInterval(()=>{t+=0.04;set([Math.cos(t),-Math.sin(t),Math.sin(t),Math.cos(t)])},30);
+  };
+  show(i);
+})();
+</script>
+</body>
+</html>
